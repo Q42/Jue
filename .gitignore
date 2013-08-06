@@ -1,0 +1,3 @@
+# Ignore binaries and Eclipse files
+.metadata/*
+jue/bin/*
