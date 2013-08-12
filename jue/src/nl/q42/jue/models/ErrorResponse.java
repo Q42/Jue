@@ -1,7 +1,19 @@
 package nl.q42.jue.models;
 
 public class ErrorResponse {
-	public int type;
-	public String address;
-	public String description;
+	private int type;
+	private String address;
+	private String description;
+	
+	public int getType() {
+		return type;
+	}
+	
+	public String getAddress() {
+		return address;
+	}
+	
+	public String getDescription() {
+		return description;
+	}
 }
