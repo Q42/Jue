@@ -1,6 +1,6 @@
-package nl.q42.jue.models;
+package nl.q42.jue;
 
-public class CreateUserRequest {
+class CreateUserRequest {
 	public String username;
 	public String devicetype;
 	

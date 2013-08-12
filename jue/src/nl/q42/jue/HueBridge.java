@@ -14,12 +14,8 @@ import nl.q42.jue.exceptions.LinkButtonException;
 import nl.q42.jue.exceptions.UnauthorizedException;
 import nl.q42.jue.models.AuthenticatedConfig;
 import nl.q42.jue.models.Config;
-import nl.q42.jue.models.CreateUserRequest;
-import nl.q42.jue.models.ErrorResponse;
 import nl.q42.jue.models.FullLight;
 import nl.q42.jue.models.Light;
-import nl.q42.jue.models.ResponseMap;
-import nl.q42.jue.models.ResponseString;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -37,8 +33,12 @@ public class HueBridge {
 	
 	private Gson gson = new GsonBuilder().setDateFormat(DATE_FORMAT).create();
 	
+	// TODO: Get rid of this or change name to something like GenericResponse
+	private class ResponseMap {
+		public Map<String, String> success;
+	}
+	
 	private Type responseTypeMap = new TypeToken<List<ResponseMap>>(){}.getType();
-	private Type responseTypeString = new TypeToken<List<ResponseString>>(){}.getType();
 	
 	/**
 	 * Connect with a bridge as a new user.
@@ -132,9 +132,6 @@ public class HueBridge {
 		Result result = Networker.delete(getRelativeURL(enc(username) + "/config/whitelist/" + enc(username)));
 
 		handleErrors(result);
-		
-		List<ResponseString> entries = gson.fromJson(result.getBody(), responseTypeString);
-		entries.get(0);
 	}
 	
 	/**

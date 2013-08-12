@@ -1,6 +1,6 @@
-package nl.q42.jue.models;
+package nl.q42.jue;
 
-public class ErrorResponse {
+class ErrorResponse {
 	private int type;
 	private String address;
 	private String description;
