@@ -10,6 +10,8 @@ public class State {
 	private int sat;
 	private float[] xy;
 	private int ct;
+	private String alert;
+	private String effect;
 	private String colormode;
 	private boolean reachable;
 	
@@ -30,7 +32,42 @@ public class State {
 		/**
 		 * Color temperature in mirek
 		 */
-		CT
+		CT;
+	}
+	
+	/**
+	 * Alert modes of a light
+	 */
+	public enum AlertMode {
+		/**
+		 * Light is not performing alert effect
+		 */
+		NONE,
+		
+		/**
+		 * Light is performing one breathe cycle
+		 */
+		SELECT,
+		
+		/**
+		 * Light is performing breathe cycles for 30 seconds (unless cancelled)
+		 */
+		LSELECT
+	}
+	
+	/**
+	 * Effects possible for a light
+	 */
+	public enum Effect {
+		/**
+		 * No effect
+		 */
+		NONE,
+		
+		/**
+		 * Cycle through all hues with current saturation and brightness
+		 */
+		COLORLOOP
 	}
 	
 	/**
@@ -82,17 +119,28 @@ public class State {
 	}
 	
 	/**
+	 * Returns the last alert mode set.
+	 * NOTE: Future updates may change this to actually report the current alert mode.
+	 * @return last alert mode
+	 */
+	public AlertMode getAlertMode() {
+		return AlertMode.valueOf(alert.toUpperCase());
+	}
+	
+	/**
 	 * Returns the current color mode.
 	 * @return current color mode
 	 */
 	public ColorMode getColorMode() {
-		if (colormode.equals("xy")) {
-			return ColorMode.XY;
-		} else if (colormode.equals("hs")) {
-			return ColorMode.HS;
-		} else {
-			return ColorMode.CT;
-		}
+		return ColorMode.valueOf(colormode.toUpperCase());
+	}
+	
+	/**
+	 * Returns the current active effect.
+	 * @return current active effect
+	 */
+	public Effect getEffect() {
+		return Effect.valueOf(effect.toUpperCase());
 	}
 	
 	/**

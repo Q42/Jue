@@ -5,6 +5,10 @@ import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Type;
 import java.net.URLEncoder;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -32,13 +36,6 @@ public class HueBridge {
 	private String username;
 	
 	private Gson gson = new GsonBuilder().setDateFormat(DATE_FORMAT).create();
-	
-	// TODO: Get rid of this or change name to something like GenericResponse
-	private class ResponseMap {
-		public Map<String, String> success;
-	}
-	
-	private Type responseTypeMap = new TypeToken<List<ResponseMap>>(){}.getType();
 	
 	/**
 	 * Connect with a bridge as a new user.
@@ -73,16 +70,13 @@ public class HueBridge {
 	 * @return Config or AuthenticatedConfig if authenticated
 	 */
 	public Config getConfig() throws IOException, ApiException {
-		Result result;
+		Result result = Networker.get(getRelativeURL("config"));
+		handleErrors(result);
 		
 		if (username == null) {
-			result = Networker.get(getRelativeURL("config"));
-			handleErrors(result);
-			return gson.fromJson(result.getBody(), Config.class);
+			return safeFromJson(result.getBody(), Config.class);
 		} else {
-			result = Networker.get(getRelativeURL(enc(username) + "/config"));
-			handleErrors(result);
-			return gson.fromJson(result.getBody(), AuthenticatedConfig.class);
+			return safeFromJson(result.getBody(), AuthenticatedConfig.class);
 		}
 	}
 	
@@ -111,14 +105,14 @@ public class HueBridge {
 			throw new IllegalStateException("already linked");
 		}
 		
-		String body = gson.toJson(request, CreateUserRequest.class);
+		String body = gson.toJson(request);
 		Result result = Networker.post(getRelativeURL(""), body);
 		
 		handleErrors(result);
 		
-		List<ResponseMap> entries = gson.fromJson(result.getBody(), responseTypeMap);
-		ResponseMap response = entries.get(0);
-		
+		List<SuccessResponse> entries = safeFromJson(result.getBody(), SuccessResponse.gsonType);
+		SuccessResponse response = entries.get(0);
+	
 		return response.success.get("username");
 	}
 	
@@ -127,59 +121,111 @@ public class HueBridge {
 	 * @throws ApiException throws UnauthorizedException if the user no longer exists, ApiException for other errors
 	 */
 	public void unlink() throws IOException, ApiException {
-		requireUsername();
+		requireAuthentication();
 		
-		Result result = Networker.delete(getRelativeURL(enc(username) + "/config/whitelist/" + enc(username)));
+		Result result = Networker.delete(getRelativeURL("config/whitelist/" + enc(username)));
 
 		handleErrors(result);
 	}
 	
+	public Date getLastSearch() throws IOException, ApiException {
+		requireAuthentication();
+		
+		Result result = Networker.get(getRelativeURL("lights/new"));
+		
+		handleErrors(result);
+		
+		String lastScan = safeFromJson(result.getBody(), NewLightsResponse.class).lastscan;
+		
+		if (lastScan.equals("none")) {
+			return null;
+		} else if (lastScan.equals("active")) {
+			return new Date();
+		} else {
+			try {
+				return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").parse(lastScan);
+			} catch (ParseException e) {
+				return null;
+			}
+		}
+	}
+	
 	/**
-	 * Returns a mapping from IDs to names of lights known to the bridge.
-	 * @return map with ids and lights 
+	 * Start searching for new lights for 1 minute.
+	 * A maximum amount of 15 new lights will be added.
 	 * @throws ApiException throws UnauthorizedException if the user no longer exists, ApiException for other errors
 	 */
-	public Map<String, Light> getLights() throws IOException, ApiException {
-		requireUsername();
+	public void startSearch() throws IOException, ApiException {
+		requireAuthentication();
 		
-		Result result = Networker.get(getRelativeURL(enc(username) + "/lights"));
+		Result result = Networker.post(getRelativeURL("lights"), "");
+		
+		handleErrors(result);
+	}
+	
+	/**
+	 * Returns a list of lights known to the bridge.
+	 * @return list of known lights 
+	 * @throws ApiException throws UnauthorizedException if the user no longer exists, ApiException for other errors
+	 */
+	public List<Light> getLights() throws IOException, ApiException {
+		requireAuthentication();
+		
+		Result result = Networker.get(getRelativeURL("lights"));
 		
 		handleErrors(result);
 			
 		Type responseType = new TypeToken<Map<String, Light>>(){}.getType();
-		Map<String, Light> lights = gson.fromJson(result.getBody(), responseType);
+		Map<String, Light> lightMap = safeFromJson(result.getBody(), responseType);
 		
-		for (String id : lights.keySet()) {
-			setLightID(lights.get(id), id);
+		ArrayList<Light> lightList = new ArrayList<Light>();
+		
+		for (String id : lightMap.keySet()) {
+			Light light = lightMap.get(id);
+			setLightID(light, id);
+			lightList.add(light);
 		}
 		
-		return lights;
+		return lightList;
 	}
 	
 	/**
-	 * Returns detailed information given basic light information.
-	 * @param light basic light information
+	 * Returns detailed information for the given light.
+	 * @param light light
 	 * @return detailed light information
 	 * @throws ApiException throws UnauthorizedException if the user no longer exists, ApiException for other errors
 	 */
 	public FullLight getLight(Light light) throws IOException, ApiException {
-		return getLight(light.getID());
-	}
-	
-	/**
-	 * Returns detailed light information of the light with the given ID.
-	 * @param id id of light
-	 * @return detailed light information
-	 * @throws ApiException throws UnauthorizedException if the user no longer exists, ApiException for other errors
-	 */
-	public FullLight getLight(String id) throws IOException, ApiException {
-		requireUsername();
+		requireAuthentication();
 		
-		Result result = Networker.get(getRelativeURL(enc(username) + "/lights/" + enc(id)));
+		Result result = Networker.get(getRelativeURL("lights/" + enc(light.getID())));
 		
 		handleErrors(result);
 		
-		return gson.fromJson(result.getBody(), FullLight.class);
+		FullLight fullLight = safeFromJson(result.getBody(), FullLight.class);
+		setLightID(fullLight, light.getID());
+		return fullLight;
+	}
+	
+	/**
+	 * Changes the name of the light and returns the new name.
+	 * NOTE: A number will be appended to duplicate names, which may result in a new name exceeding 32 characters.
+	 * @param light light
+	 * @param name new name (maximum length of 32 characters)
+	 * @return new name
+	 */
+	public String setLightName(Light light, String name) throws IllegalArgumentException, IOException, ApiException {
+		requireAuthentication();
+		
+		String body = gson.toJson(new SetLightNameRequest(name));
+		Result result = Networker.put(getRelativeURL("lights/" + enc(light.getID())), body);
+		
+		handleErrors(result);
+		
+		List<SuccessResponse> entries = safeFromJson(result.getBody(), SuccessResponse.gsonType);
+		SuccessResponse response = entries.get(0);
+		
+		return response.success.get("/lights/" + enc(light.getID()) + "/name");
 	}
 	
 	// Set ID field without exposing an actual constructor or setter
@@ -194,19 +240,37 @@ public class HueBridge {
 		} catch (Exception e) {}
 	}
 	
-	private void requireUsername() {
+	// Used as assert in requests that require authentication
+	private void requireAuthentication() {
 		if (this.username == null) {
 			throw new IllegalStateException("linking is required before interacting with the bridge");
 		}
 	}
 	
+	// Methods that convert gson exceptions into ApiExceptions
+	private <T> T safeFromJson(String json, Type typeOfT) throws ApiException {
+		try {
+			return gson.fromJson(json, typeOfT);
+		} catch (JsonParseException e) {
+			throw new ApiException("API returned unexpected result: " + e.getMessage());
+		}
+	}
+	
+	private <T> T safeFromJson(String json, Class<T> classOfT) throws ApiException {
+		try {
+			return gson.fromJson(json, classOfT);
+		} catch (JsonParseException e) {
+			throw new ApiException("API returned unexpected result: " + e.getMessage());
+		}
+	}
+	
+	// Used as assert in all requests to elegantly catch common errors
 	private void handleErrors(Result result) throws IOException, ApiException {
 		if (result.getResponseCode() != 200) {
 			throw new IOException();
 		} else {
 			try {
-				Type errorType = new TypeToken<List<ErrorResponse>>(){}.getType();
-				ErrorResponse error = gson.fromJson(result.getBody(), errorType);
+				ErrorResponse error = gson.fromJson(result.getBody(), ErrorResponse.gsonType);
 				
 				switch (error.getType()) {
 				case 1:
@@ -218,6 +282,8 @@ public class HueBridge {
 				}
 			} catch (JsonParseException e) {
 				// Not an error
+			} catch (ClassCastException e) {
+				// Not an error
 			}
 		}
 	}
@@ -228,11 +294,15 @@ public class HueBridge {
 			return URLEncoder.encode(str, "utf-8");
 		} catch (UnsupportedEncodingException e) {
 			// throw new EndOfTheWorldException()
-			return null;
+			throw new UnsupportedOperationException("UTF-8 not supported");
 		}
 	}
 	
 	private String getRelativeURL(String path) {
-		return "http://" + ip + "/api/" + path;
+		if (username == null) {
+			return "http://" + ip + "/api/" + path;
+		} else {
+			return "http://" + ip + "/api/" + enc(username) + "/" + path;
+		}
 	}
 }

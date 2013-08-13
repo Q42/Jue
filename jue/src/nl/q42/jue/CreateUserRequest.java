@@ -1,15 +1,16 @@
 package nl.q42.jue;
 
+@SuppressWarnings("unused")
 class CreateUserRequest {
-	public String username;
-	public String devicetype;
+	private String username;
+	private String devicetype;
 	
 	public CreateUserRequest(String username, String devicetype) {
-		if (devicetype.length() > 40) {
+		if (Util.stringSize(devicetype) > 40) {
 			throw new IllegalArgumentException("Device type can be at most 40 characters long");
 		}
 		
-		if (username.length() < 10 || username.length() > 40) {
+		if (Util.stringSize(username) < 10 || Util.stringSize(username) > 40) {
 			throw new IllegalArgumentException("Username must be between 10 and 40 characters long");
 		}
 		
@@ -18,7 +19,7 @@ class CreateUserRequest {
 	}
 	
 	public CreateUserRequest(String devicetype) {
-		if (devicetype.length() > 40) {
+		if (Util.stringSize(devicetype) > 40) {
 			throw new IllegalArgumentException("Device type can be at most 40 characters long");
 		}
 		
