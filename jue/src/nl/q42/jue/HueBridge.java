@@ -45,12 +45,16 @@ public class HueBridge {
 	
 	/**
 	 * Connect with a bridge as an existing user.
+	 * 
+	 * The username is verified by requesting the list of lights.
+	 * Use the ip only constructor and authenticate() function if
+	 * you don't want to connect right now.
 	 * @param ip ip address of bridge
 	 * @param username username to authenticate with
 	 */
-	public HueBridge(String ip, String username) {
+	public HueBridge(String ip, String username) throws IOException, ApiException {
 		this.ip = ip;
-		this.username = username;
+		authenticate(username);
 	}
 	
 	/**
@@ -62,11 +66,27 @@ public class HueBridge {
 	}
 	
 	/**
+	 * Returns the IP address of the bridge.
+	 * @return ip address of bridge
+	 */
+	public String getIPAddress() {
+		return ip;
+	}
+	
+	/**
 	 * Returns the username currently authenticated with or null if there isn't one.
 	 * @return username or null
 	 */
 	public String getUsername() {
 		return username;
+	}
+	
+	/**
+	 * Returns if authentication was successful on the bridge.
+	 * @return true if authenticated on the bridge, false otherwise
+	 */
+	public boolean isAuthenticated() {
+		return getUsername() != null;
 	}
 	
 	/**
@@ -425,6 +445,19 @@ public class HueBridge {
 		Result result = http.delete(getRelativeURL("groups/" + enc(group.getId())));
 		
 		handleErrors(result);
+	}
+	
+	/**
+	 * Authenticate on the bridge as the specified user.
+	 * This function verifies that the specified username is valid and will use
+	 * it for subsequent requests if it is, otherwise an UnauthorizedException
+	 * is thrown and the internal username is not changed.
+	 * @param username username to authenticate
+	 * @throws UnauthorizedException thrown if authentication failed
+	 */
+	public void authenticate(String username) throws IOException, ApiException {
+		getLights();
+		this.username = username;
 	}
 	
 	/**
