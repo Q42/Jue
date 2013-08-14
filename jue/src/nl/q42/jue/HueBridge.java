@@ -207,7 +207,7 @@ public class HueBridge {
 	}
 	
 	/**
-	 * Returns the list of groups.
+	 * Returns the list of groups, including the unmodifiable all lights group.
 	 * @return list of groups
 	 * @throws UnauthorizedException thrown if the user no longer exists
 	 */
@@ -468,6 +468,7 @@ public class HueBridge {
 	 * more detailed info if there is an authenticated user.
 	 * @see Config
 	 * @return Config or AuthenticatedConfig if authenticated
+	 * @throws UnauthorizedException thrown if the user no longer exists
 	 */
 	public Config getConfig() throws IOException, ApiException {
 		Result result = http.get(getRelativeURL("config"));
@@ -480,6 +481,11 @@ public class HueBridge {
 		}
 	}
 	
+	/**
+	 * Change the configuration of the bridge.
+	 * @param update changes to the configuration
+	 * @throws UnauthorizedException thrown if the user no longer exists
+	 */
 	public void setConfig(ConfigUpdate update) throws IOException, ApiException {
 		requireAuthentication();
 		
