@@ -1,6 +1,7 @@
-package nl.q42.jue.models;
+package nl.q42.jue;
 
 import java.util.Date;
+
 
 /**
  * Detailed bridge info available if authenticated.
@@ -15,6 +16,8 @@ public class AuthenticatedConfig extends Config {
 	private int proxyport;
 	private Date UTC;
 	private boolean linkbutton;
+	
+	AuthenticatedConfig() {}
 	
 	/**
 	 * Returns the MAC address.

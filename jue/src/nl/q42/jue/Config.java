@@ -1,4 +1,4 @@
-package nl.q42.jue.models;
+package nl.q42.jue;
 
 
 /**
@@ -7,6 +7,8 @@ package nl.q42.jue.models;
 public class Config {
 	private String name;
 	private String swversion;
+	
+	Config() {}
 	
 	/**
 	 * Returns the name.

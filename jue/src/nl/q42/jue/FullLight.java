@@ -1,4 +1,6 @@
-package nl.q42.jue.models;
+package nl.q42.jue;
+
+
 
 /**
  * Detailed light information
@@ -8,6 +10,8 @@ public class FullLight extends Light {
 	private String type;
 	private String modelid;
 	private String swversion;
+	
+	FullLight() {}
 	
 	/**
 	 * Returns current state.

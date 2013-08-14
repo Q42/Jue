@@ -1,4 +1,4 @@
-package nl.q42.jue.models;
+package nl.q42.jue;
 
 /**
  * Current state of light
@@ -14,6 +14,8 @@ public class State {
 	private String effect;
 	private String colormode;
 	private boolean reachable;
+	
+	State() {}
 	
 	/**
 	 * Color modes of a light

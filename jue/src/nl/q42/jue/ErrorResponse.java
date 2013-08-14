@@ -6,21 +6,25 @@ import java.util.List;
 import com.google.gson.reflect.TypeToken;
 
 class ErrorResponse {
-	public final static Type gsonType = new TypeToken<List<SuccessResponse>>(){}.getType();
+	public final static Type gsonType = new TypeToken<List<ErrorResponse>>(){}.getType();
 	
-	private int type;
-	private String address;
-	private String description;
+	public class Error {
+		private Integer type;
+		private String address;
+		private String description;
+	}
 	
-	public int getType() {
-		return type;
+	private Error error;
+	
+	public Integer getType() {
+		return error.type;
 	}
 	
 	public String getAddress() {
-		return address;
+		return error.address;
 	}
 	
 	public String getDescription() {
-		return description;
+		return error.description;
 	}
 }

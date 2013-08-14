@@ -1,5 +1,5 @@
 package nl.q42.jue;
 
-public class NewLightsResponse {
+class NewLightsResponse {
 	public String lastscan;
 }
