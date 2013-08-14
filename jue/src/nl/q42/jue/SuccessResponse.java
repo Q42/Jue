@@ -9,5 +9,5 @@ import com.google.gson.reflect.TypeToken;
 class SuccessResponse {
 	public final static Type gsonType = new TypeToken<List<SuccessResponse>>(){}.getType();
 	
-	public Map<String, String> success;
+	public Map<String, Object> success;
 }

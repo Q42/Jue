@@ -19,7 +19,6 @@ import nl.q42.jue.exceptions.UnauthorizedException;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParseException;
-import com.google.gson.reflect.TypeToken;
 
 /**
  * Representation of a connection with a Hue bridge.
@@ -108,7 +107,7 @@ public class HueBridge {
 		List<SuccessResponse> entries = safeFromJson(result.getBody(), SuccessResponse.gsonType);
 		SuccessResponse response = entries.get(0);
 	
-		return response.success.get("username");
+		return (String) response.success.get("username");
 	}
 	
 	/**
@@ -123,6 +122,13 @@ public class HueBridge {
 		handleErrors(result);
 	}
 	
+	/**
+	 * Returns the last time a search for new lights was started.
+	 * If a search is currently running, the current time will be
+	 * returned or null if a search has never been started.
+	 * @return last search time
+	 * @throws ApiException throws UnauthorizedException if the user no longer exists, ApiException for other errors
+	 */
 	public Date getLastSearch() throws IOException, ApiException {
 		requireAuthentication();
 		
@@ -170,8 +176,7 @@ public class HueBridge {
 		
 		handleErrors(result);
 			
-		Type responseType = new TypeToken<Map<String, Light>>(){}.getType();
-		Map<String, Light> lightMap = safeFromJson(result.getBody(), responseType);
+		Map<String, Light> lightMap = safeFromJson(result.getBody(), Light.gsonType);
 		
 		ArrayList<Light> lightList = new ArrayList<Light>();
 		
@@ -213,7 +218,7 @@ public class HueBridge {
 	public String setLightName(Light light, String name) throws IOException, ApiException {
 		requireAuthentication();
 		
-		String body = gson.toJson(new SetLightNameRequest(name));
+		String body = gson.toJson(new SetAttributesRequest(name));
 		Result result = Networker.put(getRelativeURL("lights/" + enc(light.getId())), body);
 		
 		handleErrors(result);
@@ -221,7 +226,7 @@ public class HueBridge {
 		List<SuccessResponse> entries = safeFromJson(result.getBody(), SuccessResponse.gsonType);
 		SuccessResponse response = entries.get(0);
 		
-		return response.success.get("/lights/" + enc(light.getId()) + "/name");
+		return (String) response.success.get("/lights/" + enc(light.getId()) + "/name");
 	}
 	
 	/**
@@ -235,6 +240,176 @@ public class HueBridge {
 		
 		String body = update.toJson();
 		Result result = Networker.put(getRelativeURL("lights/" + enc(light.getId()) + "/state"), body);
+		
+		handleErrors(result);
+	}
+	
+	/**
+	 * Returns the list of groups.
+	 * @return list of groups
+	 * @throws ApiException throws UnauthorizedException if the user no longer exists, ApiException for other errors
+	 */
+	public List<Group> getGroups() throws IOException, ApiException {
+		requireAuthentication();
+		
+		Result result = Networker.get(getRelativeURL("groups"));
+		
+		handleErrors(result);
+		
+		Map<String, Group> groupMap = safeFromJson(result.getBody(), Group.gsonType);
+		ArrayList<Group> groupList = new ArrayList<Group>();
+		
+		groupList.add(new Group());
+		
+		for (String id : groupMap.keySet()) {
+			Group group = groupMap.get(id);
+			group.setId(id);
+			groupList.add(group);
+		}
+		
+		return groupList;
+	}
+	
+	/**
+	 * Creates a new group and returns it.
+	 * NOTE: Due to API limitations, the name of the returned object
+	 * will simply be the same as the name parameter. The bridge will
+	 * append a number to the name if it's a duplicate. To get the final
+	 * name, call getGroup with the returned object.
+	 * @param name new group name
+	 * @param lights lights in group
+	 * @return object representing new group
+	 * @throws ApiException throws UnauthorizedException if the user no longer exists, ApiException for other errors
+	 */
+	public Group createGroup(String name, List<Light> lights) throws IOException, ApiException {
+		requireAuthentication();
+		
+		String body = gson.toJson(new SetAttributesRequest(name, lights));
+		Result result = Networker.post(getRelativeURL("groups"), body);
+		
+		handleErrors(result);
+		
+		List<SuccessResponse> entries = safeFromJson(result.getBody(), SuccessResponse.gsonType);
+		SuccessResponse response = entries.get(0);
+		
+		Group group = new Group();
+		group.setName(name);
+		group.setId(Util.quickMatch("^/groups/([0-9]+)$", (String) response.success.values().toArray()[0]));
+		return group;
+	}
+	
+	/**
+	 * Returns detailed information for the given group.
+	 * @param group group
+	 * @return detailed group information
+	 * @throws ApiException throws UnauthorizedException if the user no longer exists, ApiException for other errors
+	 */
+	public FullGroup getGroup(Group group) throws IOException, ApiException {
+		requireAuthentication();
+		
+		Result result = Networker.get(getRelativeURL("groups/" + enc(group.getId())));
+		
+		handleErrors(result);
+		
+		FullGroup fullGroup = safeFromJson(result.getBody(), FullGroup.class);
+		fullGroup.setId(group.getId());
+		return fullGroup;
+	}
+	
+	/**
+	 * Changes the name of the group and returns the new name.
+	 * NOTE: A number will be appended to duplicate names, which may result in a new name exceeding 32 characters.
+	 * @param group group
+	 * @param name new name [0..32]
+	 * @return new name
+	 * @throws ApiException throws UnauthorizedException if the user no longer exists, ApiException for other errors
+	 */
+	public String setGroupName(Group group, String name) throws IOException, ApiException {
+		requireAuthentication();
+		
+		if (!group.isModifiable()) {
+			throw new IllegalArgumentException("Group cannot be modified");
+		}
+		
+		String body = gson.toJson(new SetAttributesRequest(name));
+		Result result = Networker.put(getRelativeURL("groups/" + enc(group.getId())), body);
+		
+		handleErrors(result);
+		
+		List<SuccessResponse> entries = safeFromJson(result.getBody(), SuccessResponse.gsonType);
+		SuccessResponse response = entries.get(0);
+		
+		return (String) response.success.get("/groups/" + enc(group.getId()) + "/name");
+	}
+	
+	/**
+	 * Changes the lights in the group.
+	 * @param group group
+	 * @param lights new lights [1..16]
+	 * @throws ApiException throws UnauthorizedException if the user no longer exists, ApiException for other errors
+	 */
+	public void setGroupLights(Group group, List<Light> lights) throws IOException, ApiException {
+		requireAuthentication();
+		
+		if (!group.isModifiable()) {
+			throw new IllegalArgumentException("Group cannot be modified");
+		}
+		
+		String body = gson.toJson(new SetAttributesRequest(lights));
+		Result result = Networker.put(getRelativeURL("groups/" + enc(group.getId())), body);
+		
+		handleErrors(result);
+	}
+	
+	/**
+	 * Changes the name and the lights of a group and returns the new name.
+	 * @param group group
+	 * @param name new name [0..32]
+	 * @param lights [1..16]
+	 * @return new name
+	 * @throws ApiException throws UnauthorizedException if the user no longer exists, ApiException for other errors
+	 */
+	public String setGroupAttributes(Group group, String name, List<Light> lights) throws IOException, ApiException {
+		requireAuthentication();
+		
+		if (!group.isModifiable()) {
+			throw new IllegalArgumentException("Group cannot be modified");
+		}
+		
+		String body = gson.toJson(new SetAttributesRequest(name, lights));
+		Result result = Networker.put(getRelativeURL("groups/" + enc(group.getId())), body);
+		
+		handleErrors(result);
+		
+		List<SuccessResponse> entries = safeFromJson(result.getBody(), SuccessResponse.gsonType);
+		SuccessResponse response = entries.get(0);
+		
+		return (String) response.success.get("/groups/" + enc(group.getId()) + "/name");
+	}
+	
+	/**
+	 * Changes the state of a group.
+	 * @param group group
+	 * @param update changes to the state
+	 * @throws ApiException throws UnauthorizedException if the user no longer exists, ApiException for other errors
+	 */
+	public void setGroupState(Group group, StateUpdate update) throws IOException, ApiException {
+		requireAuthentication();
+		
+		String body = update.toJson();
+		Result result = Networker.put(getRelativeURL("groups/" + enc(group.getId()) + "/action"), body);
+		
+		handleErrors(result);
+	}
+	
+	public void deleteGroup(Group group) throws IOException, ApiException {
+		requireAuthentication();
+		
+		if (!group.isModifiable()) {
+			throw new IllegalArgumentException("Group cannot be modified");
+		}
+		
+		Result result = Networker.delete(getRelativeURL("groups/" + enc(group.getId())));
 		
 		handleErrors(result);
 	}

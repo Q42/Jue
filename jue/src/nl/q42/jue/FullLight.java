@@ -1,7 +1,5 @@
 package nl.q42.jue;
 
-
-
 /**
  * Detailed light information
  */
@@ -14,7 +12,7 @@ public class FullLight extends Light {
 	FullLight() {}
 	
 	/**
-	 * Returns current state.
+	 * Returns the current state of the light.
 	 * @return current state
 	 */
 	public State getState() {
@@ -22,7 +20,7 @@ public class FullLight extends Light {
 	}
 	
 	/**
-	 * Returns type.
+	 * Returns the type of the light.
 	 * @return type
 	 */
 	public String getType() {
@@ -30,7 +28,7 @@ public class FullLight extends Light {
 	}
 	
 	/**
-	 * Returns model ID.
+	 * Returns the model ID of the light.
 	 * @return model id
 	 */
 	public String getModelID() {
@@ -38,7 +36,7 @@ public class FullLight extends Light {
 	}
 	
 	/**
-	 * Returns software version.
+	 * Returns the software version of the light.
 	 * @return software version
 	 */
 	public String getSoftwareVersion() {
