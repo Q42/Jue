@@ -122,7 +122,7 @@ public class State {
 	
 	/**
 	 * Returns the last alert mode set.
-	 * NOTE: Future updates may change this to actually report the current alert mode.
+	 * Future firmware updates may change this to actually report the current alert mode.
 	 * @return last alert mode
 	 */
 	public AlertMode getAlertMode() {

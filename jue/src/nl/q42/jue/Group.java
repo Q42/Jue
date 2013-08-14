@@ -29,7 +29,7 @@ public class Group {
 	
 	/**
 	 * Returns if the group can be modified.
-	 * NOTE: Currently only returns false for the all lights pseudo group.
+	 * Currently only returns false for the all lights pseudo group.
 	 * @return modifiability of group
 	 */
 	public boolean isModifiable() {

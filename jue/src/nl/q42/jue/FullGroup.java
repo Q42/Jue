@@ -13,7 +13,7 @@ public class FullGroup extends Group {
 	
 	/**
 	 * Returns the last sent state update to the group.
-	 * NOTE: This does not have to reflect the current state of the group.
+	 * This does not have to reflect the current state of the group.
 	 * @return last state update
 	 */
 	public State getAction() {

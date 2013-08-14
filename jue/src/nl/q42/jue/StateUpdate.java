@@ -5,8 +5,6 @@ import java.util.ArrayList;
 import nl.q42.jue.State.AlertMode;
 import nl.q42.jue.State.Effect;
 
-import com.google.gson.Gson;
-
 /**
  * Collection of updates to the state of a light
  */
@@ -24,20 +22,6 @@ public class StateUpdate {
 		json.append("}");
 		
 		return json.toString();
-	}
-	
-	private class Command {
-		private String key;
-		private Object value;
-		
-		public Command(String key, Object value) {
-			this.key = key;
-			this.value = value;
-		}
-		
-		String toJson() {
-			return "\"" + key + "\":" + new Gson().toJson(value);
-		}
 	}
 	
 	/**
@@ -68,7 +52,7 @@ public class StateUpdate {
 	
 	/**
 	 * Set brightness of light.
-	 * NOTE: Brightness 0 is not the same as off.
+	 * Brightness 0 is not the same as off.
 	 * @param brightness brightness [1..255]
 	 * @return this object for chaining calls
 	 */
@@ -173,7 +157,7 @@ public class StateUpdate {
 	
 	/**
 	 * Set the transition time from the current state to the new state.
-	 * NOTE: Time is accurate to 100 milliseconds.
+	 * Time is accurate to 100 milliseconds.
 	 * @param timeMillis time in milliseconds [0..6553600]
 	 * @return this object for chaining calls
 	 */

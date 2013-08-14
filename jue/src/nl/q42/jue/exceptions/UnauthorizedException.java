@@ -1,7 +1,7 @@
 package nl.q42.jue.exceptions;
 
 /**
- * Exception thrown when the user is unauthorized
+ * Thrown when the specified user is no longer whitelisted on the bridge. 
  */
 @SuppressWarnings("serial")
 public class UnauthorizedException extends ApiException {

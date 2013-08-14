@@ -21,7 +21,6 @@ public class AuthenticatedConfig extends Config {
 	
 	/**
 	 * Returns the MAC address.
-	 * Note: Requires user to be authenticated.
 	 * @return mac address of bridge
 	 */
 	public String getMACAddress() {
@@ -38,7 +37,6 @@ public class AuthenticatedConfig extends Config {
 	
 	/**
 	 * Returns the IP address.
-	 * Note: Requires user to be authenticated.
 	 * @return ip address of bridge
 	 */
 	public String getIPAddress() {
