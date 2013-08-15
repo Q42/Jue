@@ -6,7 +6,7 @@ import nl.q42.jue.State.AlertMode;
 import nl.q42.jue.State.Effect;
 
 /**
- * Collection of updates to the state of a light
+ * Collection of updates to the state of a light.
  */
 public class StateUpdate {
 	private ArrayList<Command> commands = new ArrayList<Command>();

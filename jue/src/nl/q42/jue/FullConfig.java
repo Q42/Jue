@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Container for all data on a bridge.
+ */
 public class FullConfig {
 	private Map<String, FullLight> lights;
 	private Map<String, FullGroup> groups;

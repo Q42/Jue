@@ -2,6 +2,9 @@ package nl.q42.jue;
 
 import java.util.ArrayList;
 
+/**
+ * Collection of updates to the bridge configuration.
+ */
 public class ConfigUpdate {
 	private ArrayList<Command> commands = new ArrayList<Command>();
 	

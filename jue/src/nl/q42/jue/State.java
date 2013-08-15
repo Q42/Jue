@@ -1,7 +1,7 @@
 package nl.q42.jue;
 
 /**
- * Current state of light
+ * Current state of light.
  */
 public class State {
 	private boolean on;
@@ -18,7 +18,7 @@ public class State {
 	State() {}
 	
 	/**
-	 * Color modes of a light
+	 * Color modes of a light.
 	 */
 	public enum ColorMode {
 		/**
@@ -38,7 +38,7 @@ public class State {
 	}
 	
 	/**
-	 * Alert modes of a light
+	 * Alert modes of a light.
 	 */
 	public enum AlertMode {
 		/**
@@ -58,7 +58,7 @@ public class State {
 	}
 	
 	/**
-	 * Effects possible for a light
+	 * Effects possible for a light.
 	 */
 	public enum Effect {
 		/**

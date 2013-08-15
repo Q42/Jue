@@ -1,7 +1,7 @@
 package nl.q42.jue;
 
 /**
- * Detailed light information
+ * Detailed light information.
  */
 public class FullLight extends Light {
 	private State state;

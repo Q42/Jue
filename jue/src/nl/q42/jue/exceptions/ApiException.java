@@ -1,7 +1,7 @@
 package nl.q42.jue.exceptions;
 
 /**
- * Thrown when the API returns an error
+ * Thrown when the API returns an unknown error.
  */
 @SuppressWarnings("serial")
 public class ApiException extends Exception {

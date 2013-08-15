@@ -3,7 +3,7 @@ package nl.q42.jue;
 import java.util.List;
 
 /**
- * Detailed group information
+ * Detailed group information.
  */
 public class FullGroup extends Group {
 	private State action;

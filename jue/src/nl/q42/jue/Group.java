@@ -6,7 +6,7 @@ import java.util.Map;
 import com.google.gson.reflect.TypeToken;
 
 /**
- * Basic group information
+ * Basic group information.
  */
 public class Group {
 	public final static Type gsonType = new TypeToken<Map<String, Group>>(){}.getType();

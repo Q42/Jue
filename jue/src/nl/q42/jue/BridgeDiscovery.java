@@ -122,7 +122,16 @@ public class BridgeDiscovery {
 		}
 	}
 	
+	/**
+	 * Callback for intermediary bridge search results.
+	 */
 	public interface BridgeDiscoveryCallback {
+		/**
+		 * Called when a new bridge has been discovered by UPnP.
+		 * No attempt to authenticate will be made, so you'll
+		 * have to call authenticate() on the object manually.
+		 * @param bridge Object representing found bridge
+		 */
 		public void onBridgeDiscovered(HueBridge bridge);
 	}
 }

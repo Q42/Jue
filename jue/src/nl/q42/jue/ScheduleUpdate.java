@@ -3,6 +3,9 @@ package nl.q42.jue;
 import java.util.ArrayList;
 import java.util.Date;
 
+/**
+ * Collection of updates to a schedule.
+ */
 public class ScheduleUpdate {
 	private ArrayList<Command> commands = new ArrayList<Command>();
 	
