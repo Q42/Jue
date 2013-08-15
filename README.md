@@ -8,9 +8,9 @@ It is designed with Android compatibility in mind and we encourage you to use it
 Documentation
 -------------
 
-If this is your first time using the library, have a look at the [wiki pages](https://github.com/Q42/Jue/wiki) for tutorials to learn how to use this library.
+If this is your first time using the library, have a look at the [wiki pages](https://github.com/Q42/Jue/wiki) for tutorials to learn how to use this library. These will outline the organization and usage patterns.
 
-If you're looking for a reference, you can find Javadoc [here](http://q42.github.io/Jue/). Great care was taken to properly document all functions and classes.
+If you're looking for a reference, you can find Javadoc [here](http://q42.github.io/Jue/). Great care was taken to properly document all functions and classes and it is updated after every change.
 
 License
 -------
