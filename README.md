@@ -1,14 +1,16 @@
 Jue
 ===
 
-Jue is a Java library allowing developers to easily use the features offered by a Philips Hue bridge.
+Jue is a Java library allowing developers to easily use the features offered by a Philips Hue bridge. All publicly documented API features have been implemented, along with group creation and deletion.
 
-It is designed with Android compatibility in mind.
+It is designed with Android compatibility in mind and we encourage you to use it in your apps!
 
 Documentation
 -------------
 
-Javadoc can be found [here](http://q42.github.io/Jue/).
+If this is your first time using the library, have a look at the [wiki pages](https://github.com/Q42/Jue/wiki) for tutorials to learn how to use this library.
+
+If you're looking for a reference, you can find Javadoc [here](http://q42.github.io/Jue/). Great care was taken to properly document all functions and classes.
 
 License
 -------
