@@ -1,7 +1,9 @@
 package nl.q42.jue;
 
+import java.util.ArrayList;
 import java.util.Date;
-
+import java.util.List;
+import java.util.Map;
 
 /**
  * Detailed bridge info available if authenticated.
@@ -16,6 +18,8 @@ public class AuthenticatedConfig extends Config {
 	private int proxyport;
 	private Date UTC;
 	private boolean linkbutton;
+	private Map<String, User> whitelist;
+	private SoftwareUpdate swupdate;
 	
 	AuthenticatedConfig() {}
 	
@@ -89,5 +93,25 @@ public class AuthenticatedConfig extends Config {
 	 */
 	public boolean isLinkButtonPressed() {
 		return linkbutton;
+	}
+	
+	/**
+	 * Returns the list of whitelisted users.
+	 * @return list of whitelisted users
+	 */
+	public List<User> getWhitelist() {
+		ArrayList<User> usersList = new ArrayList<User>();
+		
+		usersList.addAll(whitelist.values());
+		
+		return usersList;
+	}
+	
+	/**
+	 * Returns information about a bridge firmware update.
+	 * @return bridge firmware update info
+	 */
+	public SoftwareUpdate getSoftwareUpdate() {
+		return swupdate;
 	}
 }

@@ -19,16 +19,16 @@ public class ConfigUpdate {
 	}
 	
 	/**
-	 * Set the port of the proxy or 0 if there is no proxy.
+	 * Set the port of the proxy or null if there is no proxy.
 	 * @param port port for proxy
 	 * @return this object for chaining calls
 	 */
-	public ConfigUpdate setProxyPort(int port) {
-		if (port < 0) {
+	public ConfigUpdate setProxyPort(Integer port) {
+		if (port != null && port < 0) {
 			throw new IllegalArgumentException("Invalid value for port");
 		}
 		
-		commands.add(new Command("proxyport", port));
+		commands.add(new Command("proxyport", port == null ? 0 : port));
 		return this;
 	}
 	
@@ -47,16 +47,16 @@ public class ConfigUpdate {
 	}
 	
 	/**
-	 * Set the address of the proxy or "none" if there is no proxy.
+	 * Set the address of the proxy or null if there is no proxy.
 	 * @param ip ip of proxy
 	 * @return this object for chaining calls
 	 */
 	public ConfigUpdate setProxyAddress(String ip) {
-		if (Util.stringSize(ip) > 40) {
+		if (ip != null && Util.stringSize(ip) > 40) {
 			throw new IllegalArgumentException("Bridge proxy address can be at most 40 characters long");
 		}
 		
-		commands.add(new Command("proxyaddress", ip));
+		commands.add(new Command("proxyaddress", ip == null ? "none" : ip));
 		return this;
 	}
 	

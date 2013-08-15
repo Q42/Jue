@@ -16,12 +16,15 @@ import nl.q42.jue.exceptions.ApiException;
 import nl.q42.jue.exceptions.DeviceOffException;
 import nl.q42.jue.exceptions.EntityNotAvailableException;
 import nl.q42.jue.exceptions.GroupTableFullException;
+import nl.q42.jue.exceptions.InvalidCommandException;
 import nl.q42.jue.exceptions.LinkButtonException;
 import nl.q42.jue.exceptions.UnauthorizedException;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonParseException;
+import com.google.gson.JsonParser;
 
 /**
  * Representation of a connection with a Hue bridge.
@@ -161,28 +164,17 @@ public class HueBridge {
 	 * @param light light
 	 * @return detailed light information
 	 * @throws UnauthorizedException thrown if the user no longer exists
-	 * @throws EntityNotAvailableException thrown if the specified light no longer exists
-	 */
-	public FullLight getLight(Light light) throws IOException, ApiException {
-		return getLight(light.getId());
-	}
-	
-	/**
-	 * Returns detailed information for the given light.
-	 * @param id light id
-	 * @return detailed light information
-	 * @throws UnauthorizedException thrown if the user no longer exists
 	 * @throws EntityNotAvailableException thrown if a light with the given id doesn't exist 
 	 */
-	public FullLight getLight(String id) throws IOException, ApiException {
+	public FullLight getLight(Light light) throws IOException, ApiException {
 		requireAuthentication();
 		
-		Result result = http.get(getRelativeURL("lights/" + enc(id)));
+		Result result = http.get(getRelativeURL("lights/" + enc(light.getId())));
 		
 		handleErrors(result);
 		
 		FullLight fullLight = safeFromJson(result.getBody(), FullLight.class);
-		fullLight.setId(id);
+		fullLight.setId(light.getId());
 		return fullLight;
 	}
 	
@@ -314,28 +306,17 @@ public class HueBridge {
 	 * @param group group
 	 * @return detailed group information
 	 * @throws UnauthorizedException thrown if the user no longer exists
-	 * @throws EntityNotAvailableException thrown if the specified group no longer exists
-	 */
-	public FullGroup getGroup(Group group) throws IOException, ApiException {
-		return getGroup(group.getId());
-	}
-	
-	/**
-	 * Returns detailed information for the given group.
-	 * @param id group id
-	 * @return detailed group information
-	 * @throws UnauthorizedException thrown if the user no longer exists
 	 * @throws EntityNotAvailableException thrown if a group with the given id doesn't exist
 	 */
-	public FullGroup getGroup(String id) throws IOException, ApiException {
+	public FullGroup getGroup(Group group) throws IOException, ApiException {
 		requireAuthentication();
 		
-		Result result = http.get(getRelativeURL("groups/" + enc(id)));
+		Result result = http.get(getRelativeURL("groups/" + enc(group.getId())));
 		
 		handleErrors(result);
 		
 		FullGroup fullGroup = safeFromJson(result.getBody(), FullGroup.class);
-		fullGroup.setId(id);
+		fullGroup.setId(group.getId());
 		return fullGroup;
 	}
 	
@@ -448,6 +429,206 @@ public class HueBridge {
 	}
 	
 	/**
+	 * Returns a list of schedules on the bridge.
+	 * @return schedules
+	 * @throws UnauthorizedException thrown if the user no longer exists
+	 */
+	public List<Schedule> getSchedules() throws IOException, ApiException {
+		requireAuthentication();
+		
+		Result result = http.get(getRelativeURL("schedules"));
+		
+		handleErrors(result);
+		
+		Map<String, Schedule> scheduleMap = safeFromJson(result.getBody(), Schedule.gsonType);
+		
+		ArrayList<Schedule> scheduleList = new ArrayList<Schedule>();
+		
+		for (String id : scheduleMap.keySet()) {
+			Schedule schedule = scheduleMap.get(id);
+			schedule.setId(id);
+			scheduleList.add(schedule);
+		}
+		
+		return scheduleList;
+	}
+	
+	/**
+	 * Schedules a new command to be run at the specified time.
+	 * To select the command for the new schedule, simply run it
+	 * as you normally would in the callback. Instead of it running
+	 * immediately, it will be scheduled to run at the specified time.
+	 * It will automatically fail with an IOException, because there
+	 * will be no response.
+	 * @param time time to run command
+	 * @param callback callback in which the command is specified
+	 * @throws UnauthorizedException thrown if the user no longer exists
+	 * @throws InvalidCommandException thrown if the scheduled command is larger than 90 bytes or otherwise invalid 
+	 */
+	public void createSchedule(Date time, ScheduleCallback callback) throws IOException, ApiException {
+		createSchedule(null, null, time, callback);
+	}
+	
+	/**
+	 * Schedules a new command to be run at the specified time.
+	 * To select the command for the new schedule, simply run it
+	 * as you normally would in the callback. Instead of it running
+	 * immediately, it will be scheduled to run at the specified time.
+	 * It will automatically fail with an IOException, because there
+	 * will be no response.
+	 * @param name name [0..32]
+	 * @param time time to run command
+	 * @param callback callback in which the command is specified
+	 * @throws UnauthorizedException thrown if the user no longer exists
+	 * @throws InvalidCommandException thrown if the scheduled command is larger than 90 bytes or otherwise invalid
+	 */
+	public void createSchedule(String name, Date time, ScheduleCallback callback) throws IOException, ApiException {
+		createSchedule(name, null, time, callback);
+	}
+	
+	/**
+	 * Schedules a new command to be run at the specified time.
+	 * To select the command for the new schedule, simply run it
+	 * as you normally would in the callback. Instead of it running
+	 * immediately, it will be scheduled to run at the specified time.
+	 * It will automatically fail with an IOException, because there
+	 * will be no response.
+	 * @param name name [0..32]
+	 * @param description description [0..64]
+	 * @param time time to run command
+	 * @param callback callback in which the command is specified
+	 * @throws UnauthorizedException thrown if the user no longer exists
+	 * @throws InvalidCommandException thrown if the scheduled command is larger than 90 bytes or otherwise invalid
+	 */
+	public void createSchedule(String name, String description, Date time, ScheduleCallback callback) throws IOException, ApiException {
+		requireAuthentication();
+		
+		handleCommandCallback(callback);
+		
+		String body = gson.toJson(new CreateScheduleRequest(name, description, scheduleCommand, time));
+		Result result = http.post(getRelativeURL("schedules"), body);
+		
+		handleErrors(result);
+	}
+	
+	/**
+	 * Returns detailed information for the given schedule.
+	 * @param schedule schedule
+	 * @return detailed schedule information
+	 * @throws UnauthorizedException thrown if the user no longer exists
+	 * @throws EntityNotAvailableException thrown if the specified schedule no longer exists
+	 */
+	public FullSchedule getSchedule(Schedule schedule) throws IOException, ApiException {
+		requireAuthentication();
+		
+		Result result = http.get(getRelativeURL("schedules/" + enc(schedule.getId())));
+		
+		handleErrors(result);
+		
+		FullSchedule fullSchedule = safeFromJson(result.getBody(), FullSchedule.class);
+		fullSchedule.setId(schedule.getId());
+		return fullSchedule;
+	}
+	
+	/**
+	 * Changes a schedule.
+	 * @param schedule schedule
+	 * @param update changes
+	 * @throws UnauthorizedException thrown if the user no longer exists
+	 * @throws EntityNotAvailableException thrown if the specified schedule no longer exists
+	 */
+	public void setSchedule(Schedule schedule, ScheduleUpdate update) throws IOException, ApiException {
+		requireAuthentication();
+		
+		String body = update.toJson();
+		Result result = http.put(getRelativeURL("schedules/" + enc(schedule.getId())), body);
+		
+		handleErrors(result);
+	}
+	
+	/**
+	 * Changes the command of a schedule.
+	 * @param schedule schedule
+	 * @param callback callback for new command
+	 * @see createSchedule
+	 * @throws UnauthorizedException thrown if the user no longer exists
+	 * @throws InvalidCommandException thrown if the scheduled command is larger than 90 bytes or otherwise invalid
+	 */
+	public void setScheduleCommand(Schedule schedule, ScheduleCallback callback) throws IOException, ApiException {
+		requireAuthentication();
+		
+		handleCommandCallback(callback);
+		
+		String body = gson.toJson(new CreateScheduleRequest(null, null, scheduleCommand, null));
+		Result result = http.put(getRelativeURL("schedules/" + enc(schedule.getId())), body);
+		
+		handleErrors(result);
+	}
+	
+	/**
+	 * Callback to specify a schedule command.
+	 */
+	public interface ScheduleCallback {
+		/**
+		 * Run the command you want to schedule as if you're executing
+		 * it normally. The request will automatically fail to produce
+		 * a result by throwing an IOException. Ideally, this method
+		 * should only contain a single statement: the command you want to run.
+		 * @param bridge this bridge for convenience
+		 * @throws IOException always thrown right after executing a command
+		 */
+		public void onScheduleCommand(HueBridge bridge) throws IOException, ApiException;
+	}
+	
+	private ScheduleCommand scheduleCommand = null;
+	private ScheduleCommand handleCommandCallback(ScheduleCallback callback) throws ApiException {
+		// Temporarily reroute requests to a fake HTTP client
+		HttpClient realClient = http;
+		http = new HttpClient() {
+			@Override
+			protected Result doNetwork(String address, String requestMethod, String body) throws IOException {
+				address = Util.quickMatch("^http://[^/]+(.+)$", address);
+				JsonElement commandBody = new JsonParser().parse(body);
+				scheduleCommand = new ScheduleCommand(address, requestMethod, commandBody);
+				
+				// Return a fake result that will cause an exception and the callback to end
+				return new Result(null, 405);
+			}
+		};
+		
+		// Run command
+		try {
+			scheduleCommand = null;
+			callback.onScheduleCommand(this);
+		} catch (IOException e) {
+			// Command will automatically fail to return a result because of deferred execution
+		} finally {
+			if (scheduleCommand != null && Util.stringSize(scheduleCommand.getBody()) > 90) {
+				throw new InvalidCommandException("Commmand body is larger than 90 bytes");
+			}
+		}
+		
+		// Restore HTTP client
+		http = realClient;
+		
+		return scheduleCommand;
+	}
+	
+	/**
+	 * Delete a schedule.
+	 * @param schedule schedule
+	 * @throws UnauthorizedException thrown if the user no longer exists
+	 * @throws EntityNotAvailableException thrown if the schedule no longer exists
+	 */
+	public void deleteSchedule(Schedule schedule) throws IOException, ApiException {
+		requireAuthentication();
+		
+		Result result = http.delete(getRelativeURL("schedules/" + enc(schedule.getId())));
+		
+		handleErrors(result);
+	}
+	
+	/**
 	 * Authenticate on the bridge as the specified user.
 	 * This function verifies that the specified username is valid and will use
 	 * it for subsequent requests if it is, otherwise an UnauthorizedException
@@ -456,8 +637,13 @@ public class HueBridge {
 	 * @throws UnauthorizedException thrown if authentication failed
 	 */
 	public void authenticate(String username) throws IOException, ApiException {
-		getLights();
-		this.username = username;
+		try {
+			this.username = username;
+			getLights();
+		} catch (Exception e) {
+			this.username = null;
+			throw new UnauthorizedException(e.toString());
+		}
 	}
 	
 	/**
@@ -598,6 +784,8 @@ public class HueBridge {
 						throw new UnauthorizedException(error.getDescription());
 					case 3:
 						throw new EntityNotAvailableException(error.getDescription());
+					case 7:
+						throw new InvalidCommandException(error.getDescription());
 					case 101:
 						throw new LinkButtonException(error.getDescription());
 					case 201:

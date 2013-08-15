@@ -32,7 +32,7 @@ class HttpClient {
 		return doNetwork(address, "DELETE", "");
 	}
 	
-	private Result doNetwork(String address, String requestMethod, String body) throws IOException {
+	protected Result doNetwork(String address, String requestMethod, String body) throws IOException {
 		HttpURLConnection conn = (HttpURLConnection) new URL(address).openConnection();
 		try {
 			conn.setRequestMethod(requestMethod);
