@@ -459,7 +459,8 @@ public class HueBridge {
 	 * as you normally would in the callback. Instead of it running
 	 * immediately, it will be scheduled to run at the specified time.
 	 * It will automatically fail with an IOException, because there
-	 * will be no response.
+	 * will be no response. Note that GET methods cannot be scheduled,
+	 * so those will still run and return results immediately.
 	 * @param time time to run command
 	 * @param callback callback in which the command is specified
 	 * @throws UnauthorizedException thrown if the user no longer exists
@@ -475,7 +476,8 @@ public class HueBridge {
 	 * as you normally would in the callback. Instead of it running
 	 * immediately, it will be scheduled to run at the specified time.
 	 * It will automatically fail with an IOException, because there
-	 * will be no response.
+	 * will be no response. Note that GET methods cannot be scheduled,
+	 * so those will still run and return results immediately.
 	 * @param name name [0..32]
 	 * @param time time to run command
 	 * @param callback callback in which the command is specified
@@ -492,7 +494,8 @@ public class HueBridge {
 	 * as you normally would in the callback. Instead of it running
 	 * immediately, it will be scheduled to run at the specified time.
 	 * It will automatically fail with an IOException, because there
-	 * will be no response.
+	 * will be no response. Note that GET methods cannot be scheduled,
+	 * so those will still run and return results immediately.
 	 * @param name name [0..32]
 	 * @param description description [0..64]
 	 * @param time time to run command
@@ -572,8 +575,9 @@ public class HueBridge {
 		/**
 		 * Run the command you want to schedule as if you're executing
 		 * it normally. The request will automatically fail to produce
-		 * a result by throwing an IOException. Ideally, this method
-		 * should only contain a single statement: the command you want to run.
+		 * a result by throwing an IOException. Requests that only
+		 * get data (e.g. getGroups) will still execute immediately,
+		 * because those cannot be scheduled.
 		 * @param bridge this bridge for convenience
 		 * @throws IOException always thrown right after executing a command
 		 */
@@ -587,12 +591,17 @@ public class HueBridge {
 		http = new HttpClient() {
 			@Override
 			protected Result doNetwork(String address, String requestMethod, String body) throws IOException {
-				address = Util.quickMatch("^http://[^/]+(.+)$", address);
-				JsonElement commandBody = new JsonParser().parse(body);
-				scheduleCommand = new ScheduleCommand(address, requestMethod, commandBody);
-				
-				// Return a fake result that will cause an exception and the callback to end
-				return new Result(null, 405);
+				// GET requests cannot be scheduled, so will continue working normally for convenience
+				if (requestMethod.equals("GET")) {
+					return super.doNetwork(address, requestMethod, body);
+				} else {
+					address = Util.quickMatch("^http://[^/]+(.+)$", address);
+					JsonElement commandBody = new JsonParser().parse(body);
+					scheduleCommand = new ScheduleCommand(address, requestMethod, commandBody);
+					
+					// Return a fake result that will cause an exception and the callback to end
+					return new Result(null, 405);
+				}
 			}
 		};
 		
