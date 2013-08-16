@@ -219,6 +219,16 @@ public class HueBridge {
 	}
 	
 	/**
+	 * Returns a group object representing all lights.
+	 * @return all lights pseudo group
+	 */
+	public Group getAllGroup() {
+		requireAuthentication();
+		
+		return new Group();
+	}
+	
+	/**
 	 * Returns the list of groups, including the unmodifiable all lights group.
 	 * @return list of groups
 	 * @throws UnauthorizedException thrown if the user no longer exists
