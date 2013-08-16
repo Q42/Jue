@@ -10,7 +10,7 @@ import java.util.Map;
 public class FullConfig {
 	private Map<String, FullLight> lights;
 	private Map<String, FullGroup> groups;
-	private AuthenticatedConfig config;
+	private Config config;
 	
 	/**
 	 * Returns detailed information about all lights known to the bridge.
@@ -49,7 +49,7 @@ public class FullConfig {
 	 * Use HueBridge.getConfig() if you only need this.
 	 * @return bridge configuration
 	 */
-	public AuthenticatedConfig getConfig() {
+	public Config getConfig() {
 		return config;
 	}
 }

@@ -702,21 +702,19 @@ public class HueBridge {
 	}
 	
 	/**
-	 * Returns basic configuration of the bridge (name and firmware version) and
-	 * more detailed info if there is an authenticated user.
+	 * Returns bridge configuration.
 	 * @see Config
-	 * @return Config or AuthenticatedConfig if authenticated
+	 * @return bridge configuration
 	 * @throws UnauthorizedException thrown if the user no longer exists
 	 */
 	public Config getConfig() throws IOException, ApiException {
+		requireAuthentication();
+		
 		Result result = http.get(getRelativeURL("config"));
+		
 		handleErrors(result);
 		
-		if (username == null) {
-			return safeFromJson(result.getBody(), Config.class);
-		} else {
-			return safeFromJson(result.getBody(), AuthenticatedConfig.class);
-		}
+		return safeFromJson(result.getBody(), Config.class);
 	}
 	
 	/**
