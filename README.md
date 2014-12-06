@@ -1,3 +1,16 @@
+2014-12-06: This Library is Unmaintained
+========================================
+
+This library was created by Q42 in August of 2013, but it no longer being maintained. As of December 2014, the library is already out of date with the official Hue API.
+
+This repository has been kept online for future reference, but it might be removed at a later date. It is provided under the [MIT license](https://github.com/Q42/Jue/blob/master/LICENSE), so feel free to fork and modify.
+
+See [hue-libs](https://github.com/Q42/hue-libs) for a list of other Hue libraries.
+
+<hr> 
+
+_The README from August 2013:_
+
 Jue
 ===
 
